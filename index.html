@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="glass.css">
 </head>
 <body class="locked">
 
@@ -35,6 +37,7 @@
       <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
       <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></symbol>
       <symbol id="i-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></symbol>
+      <symbol id="i-chev-r" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
       <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
       <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
       <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
@@ -61,12 +64,16 @@
     </div>
 
     <nav id="nav" aria-label="Main">
+      <p class="dx-nav-label" aria-hidden="true">Overview</p>
       <button data-view="dashboard"><svg class="ic" aria-hidden="true"><use href="#i-grid"/></svg><span>Dashboard</span></button>
+      <p class="dx-nav-label" aria-hidden="true">Learn</p>
       <button data-view="courses"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><span>Courses</span></button>
       <button data-view="modules"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg><span>Modules</span></button>
       <button data-view="assignments"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg><span>Assignments</span></button>
+      <p class="dx-nav-label" aria-hidden="true">Records</p>
       <button data-view="enrollments"><svg class="ic" aria-hidden="true"><use href="#i-userplus"/></svg><span>Enrollments</span></button>
       <button data-view="grades"><svg class="ic" aria-hidden="true"><use href="#i-award"/></svg><span>Grades</span></button>
+      <p class="dx-nav-label" aria-hidden="true">Account</p>
       <button data-view="profile"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Student Profile</span></button>
     </nav>
 
@@ -87,20 +94,19 @@
       <div class="topbar-left">
         <button class="menu" id="menu" aria-label="Open portal menu" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg><span class="menu-t">Menu</span></button>
         <span class="page-ic" id="page-ic" aria-hidden="true"><svg class="ic"><use href="#i-grid"/></svg></span>
-        <div>
-          <h1 id="title"></h1>
-          <p id="sub"></p>
-        </div>
+        <nav class="dx-crumbs" aria-label="Breadcrumb"><span>Acadaelash</span><svg class="ic dx-sep" aria-hidden="true"><use href="#i-chev-r"/></svg><b id="dx-crumb">Dashboard</b></nav>
       </div>
       <div class="top-actions">
         <div class="search" id="searchbox" role="search">
           <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
-          <input id="gsearch" type="search" placeholder="Search courses, modules, assignments, grades..." aria-label="Search the portal" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sresults" aria-autocomplete="list">
+          <input id="gsearch" type="search" placeholder="Search the portal..." aria-label="Search the portal" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sresults" aria-autocomplete="list">
+          <kbd class="dx-kbd" id="dx-kbd" aria-hidden="true">Ctrl K</kbd>
           <span class="spin" id="sspin" hidden aria-hidden="true"></span>
           <button type="button" id="sclear" hidden aria-label="Clear search"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button>
           <div class="drop" id="sresults" role="listbox" aria-label="Search results" hidden></div>
           <p class="sr" id="sstatus" role="status" aria-live="polite"></p>
         </div>
+        <button type="button" class="iconbtn" id="dx-theme" aria-label="Switch to dark mode" title="Toggle light / dark"><svg class="ic dx-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="ic dx-sun" aria-hidden="true"><use href="#i-sun"/></svg></button>
         <div class="bellwrap">
           <button type="button" class="iconbtn" id="bell" aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="npanel"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span class="badge-n" id="bellcount" hidden></span></button>
           <div class="drop" id="npanel" aria-label="Notifications" hidden>
@@ -128,6 +134,12 @@
         </div>
       </div>
     </header>
+
+    <div class="dx-pagehead" id="dx-pagehead">
+      <p class="dx-eyebrow" id="dx-eyebrow"></p>
+      <h1 id="title"></h1>
+      <p id="sub"></p>
+    </div>
 
     <section id="view">
 
@@ -522,7 +534,7 @@
         <div class="lp-hero-in">
           <div class="lp-intro">
             <div class="lp-actions">
-              <!--<button type="button" class="lp-btn solid lg" data-auth="signin">Login to your portal</button>-->
+              <button type="button" class="lp-btn solid lg" data-auth="signin">Login to your portal</button>
             </div>
             <ul class="lp-points">
               <li><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Modules and lessons</li>
@@ -542,7 +554,7 @@
           <section class="lp-panel" id="lp-panel" aria-label="Account">
             <div class="lp-panel-head">
               <span class="logo" aria-hidden="true"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><use href="#i-logo"/></svg></span>
-              <div><b>Welcome to Acad<em class="wm">aelash</em></b><small>Sign in or create your account</small></div>
+              <div><b>Welcome to Acad<em class="wm">aelash</em></b><small>Sign in or create your portal account</small></div>
             </div>
             <div class="lp-tabs" role="tablist" aria-label="Account actions">
               <button type="button" role="tab" id="tab-signin" aria-selected="true" aria-controls="loginForm" data-tab="signin">Sign in</button>
@@ -556,7 +568,7 @@
           <div>
             <h2>Sign in</h2>
           </div>
-          <p class="lead">Use your account to continue.</p>
+          <p class="lead">Use your portal account to continue.</p>
           <div class="field">
             <label for="lemail">Email address</label>
             <div class="ifield"><input id="lemail" name="email" type="email" autocomplete="username" required><svg class="fi" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><circle cx="12" cy="7.6" r="4.4"/><path d="M3.8 21.2c0-4.6 3.7-7.8 8.2-7.8s8.2 3.2 8.2 7.8c0 .5-.4.8-.8.8H4.6c-.4 0-.8-.3-.8-.8z"/></svg></div>
@@ -640,42 +652,12 @@
 
   <!-- Centered progress overlay shown while logging in and logging out -->
   <div id="authwait" class="authwait" role="status" aria-live="polite" aria-busy="true" hidden>
-    <div class="aw-bg" aria-hidden="true">
-      <span class="aw-beam"></span>
-      <svg class="aw-g v" style="--x:8%;--y:18%;--s:40px;--d:0s" viewBox="0 0 24 24" focusable="false"><use href="#i-cap"/></svg>
-      <svg class="aw-g" style="--x:86%;--y:14%;--s:34px;--d:-3s" viewBox="0 0 24 24" focusable="false"><use href="#i-book"/></svg>
-      <svg class="aw-g" style="--x:14%;--y:72%;--s:36px;--d:-6s" viewBox="0 0 24 24" focusable="false"><use href="#i-award"/></svg>
-      <svg class="aw-g v" style="--x:82%;--y:68%;--s:38px;--d:-2s" viewBox="0 0 24 24" focusable="false"><use href="#i-clipboard"/></svg>
-      <svg class="aw-g" style="--x:30%;--y:86%;--s:30px;--d:-5s" viewBox="0 0 24 24" focusable="false"><use href="#i-layers"/></svg>
-      <svg class="aw-g v" style="--x:68%;--y:10%;--s:28px;--d:-8s" viewBox="0 0 24 24" focusable="false"><use href="#i-spark"/></svg>
-      <svg class="aw-g" style="--x:92%;--y:42%;--s:30px;--d:-4s" viewBox="0 0 24 24" focusable="false"><use href="#i-compass"/></svg>
-      <svg class="aw-g v" style="--x:4%;--y:46%;--s:28px;--d:-7s" viewBox="0 0 24 24" focusable="false"><use href="#i-book"/></svg>
-      <i class="aw-p" style="--x:6%;--s:3px;--d:0s;--t:11s;--dx:30px"></i>
-      <i class="aw-p" style="--x:14%;--s:2px;--d:-4s;--t:13s;--dx:-20px"></i>
-      <i class="aw-p" style="--x:22%;--s:4px;--d:-8s;--t:10s;--dx:25px"></i>
-      <i class="aw-p" style="--x:31%;--s:2px;--d:-2s;--t:14s;--dx:-30px"></i>
-      <i class="aw-p" style="--x:39%;--s:3px;--d:-6s;--t:12s;--dx:20px"></i>
-      <i class="aw-p" style="--x:47%;--s:2px;--d:-10s;--t:15s;--dx:-15px"></i>
-      <i class="aw-p" style="--x:55%;--s:4px;--d:-3s;--t:11s;--dx:35px"></i>
-      <i class="aw-p" style="--x:63%;--s:2px;--d:-7s;--t:13s;--dx:-25px"></i>
-      <i class="aw-p" style="--x:71%;--s:3px;--d:-1s;--t:10s;--dx:18px"></i>
-      <i class="aw-p" style="--x:79%;--s:2px;--d:-9s;--t:14s;--dx:-22px"></i>
-      <i class="aw-p" style="--x:86%;--s:4px;--d:-5s;--t:12s;--dx:28px"></i>
-      <i class="aw-p" style="--x:93%;--s:2px;--d:-11s;--t:15s;--dx:-18px"></i>
-      <i class="aw-p" style="--x:18%;--s:2px;--d:-12s;--t:16s;--dx:12px"></i>
-      <i class="aw-p" style="--x:52%;--s:3px;--d:-13s;--t:12s;--dx:-10px"></i>
-    </div>
     <div class="aw-card">
       <div class="aw-spin" aria-hidden="true">
-        <span class="aw-glow"></span>
-        <svg class="aw-ring aw-orbit" viewBox="0 0 100 100" focusable="false"><circle cx="50" cy="50" r="49"/></svg>
-        <svg class="aw-ring" viewBox="0 0 100 100" focusable="false"><circle class="aw-track" cx="50" cy="50" r="44"/></svg>
-        <span class="aw-comet"></span>
+        <svg class="aw-ring" viewBox="0 0 100 100" focusable="false"><circle class="aw-track" cx="50" cy="50" r="44"/><circle class="aw-arc" cx="50" cy="50" r="44"/></svg>
         <svg class="mark" viewBox="0 0 48 48" focusable="false"><use href="#i-logo"/></svg>
       </div>
       <p class="aw-text"><span id="aw-text">Logging in</span><span class="aw-dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
-      <p class="aw-sub" id="aw-sub" aria-hidden="true">Verifying your credentials</p>
-      <div class="aw-bar" aria-hidden="true"><i></i></div>
     </div>
   </div>
 
@@ -2141,45 +2123,20 @@ $('logout').onclick = () => {
   sync();
 
   /* Centered "Logging in..." / "Logging out..." overlay ------------------- */
-  const aw = $('authwait'), awText = $('aw-text'), awSub = $('aw-sub'), awBar = aw.querySelector('.aw-bar i'), MIN_MS = 2000;
-  const STEPS = {
-    'Logging in': ['Verifying your credentials', 'Loading your courses', 'Preparing your dashboard'],
-    'Logging out': ['Saving your session', 'Signing you out']
-  };
-  const DONE = {'Logging in': 'All set', 'Logging out': 'See you soon'};
-  let awShown = 0, awFail = 0, awHide = 0, awTick = 0, awSwap = 0;
-  function setSub(t) {
-    clearTimeout(awSwap);
-    awSub.classList.add('swap');
-    awSwap = setTimeout(() => { awSub.textContent = t; awSub.classList.remove('swap'); }, 200);
-  }
+  const aw = $('authwait'), awText = $('aw-text'), MIN_MS = 2000;
+  let awShown = 0, awFail = 0, awHide = 0;
   function showWait(text) {
-    clearTimeout(awHide); clearTimeout(awFail); clearInterval(awTick); clearTimeout(awSwap);
+    clearTimeout(awHide); clearTimeout(awFail);
     awText.textContent = text;
-    const steps = STEPS[text] || [];
-    let i = 0;
-    awSub.classList.remove('swap'); awSub.textContent = steps[0] || '';
-    awTick = setInterval(() => { if (i < steps.length - 1) setSub(steps[++i]); else clearInterval(awTick); }, 1100);
-    aw.classList.remove('done');                        // restart the progress bar
-    awBar.style.cssText = 'animation:none'; void awBar.offsetWidth; awBar.style.cssText = '';
     aw.hidden = false;
     void aw.offsetWidth;
     aw.classList.add('show');
     awShown = Date.now();
-    awFail = setTimeout(() => hideWait(0, true), 20000);   // never leave the screen blocked
+    awFail = setTimeout(() => hideWait(0), 20000);   // never leave the screen blocked
   }
-  function finishBar() {
-    if (aw.classList.contains('done')) return;
-    aw.classList.add('done');
-    awBar.style.width = getComputedStyle(awBar).width;  // freeze where the animation is,
-    awBar.style.animation = 'none'; void awBar.offsetWidth;
-    awBar.style.width = '100%';                         // then glide to full
-    setSub(DONE[awText.textContent] || '');
-  }
-  function hideWait(extra, failed) {
+  function hideWait(extra) {
     if (aw.hidden) return;
-    clearTimeout(awFail); clearTimeout(awHide); clearInterval(awTick);
-    if (!failed) finishBar();
+    clearTimeout(awFail); clearTimeout(awHide);
     const wait = Math.max(0, MIN_MS - (Date.now() - awShown)) + (extra || 0);
     awHide = setTimeout(() => {
       aw.classList.remove('show');
@@ -2191,7 +2148,7 @@ $('logout').onclick = () => {
   $('loginForm').addEventListener('submit', () => showWait('Logging in'));
   new MutationObserver(() => { if (!document.body.classList.contains('locked')) hideWait(0); })
     .observe(document.body, {attributes: true, attributeFilter: ['class']});
-  new MutationObserver(() => { if ($('lerr').textContent.trim()) hideWait(0, true); }).observe($('lerr'), {childList: true});
+  new MutationObserver(() => { if ($('lerr').textContent.trim()) hideWait(0); }).observe($('lerr'), {childList: true});
 
   /* Log out: show the overlay first, then run the existing logout handler */
   let outBusy = false, outPass = false;
@@ -2613,5 +2570,6 @@ $('logout').onclick = () => {
 })();
 </script>
 <script src="interactions.js"></script>
+<script src="dashboard.js"></script>
 </body>
 </html>

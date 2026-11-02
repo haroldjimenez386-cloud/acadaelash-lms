@@ -1,0 +1,209 @@
+/* ==========================================================================
+   Acadaelash glass layer (optional)
+   Loaded AFTER dashboard.css. Turns the flat dashboard into frosted glass
+   over a soft gold / violet / steel aurora. Same palette as before.
+   To go back to the flat look, delete the <link ... href="glass.css"> line
+   in index.html. Nothing else depends on this file.
+   ========================================================================== */
+
+/* 1. Glass tokens ---------------------------------------------------------- */
+body:not(.locked) {
+  --dx-glass: rgba(255, 252, 243, .38);
+  --dx-glass-strong: rgba(255, 252, 243, .80);
+  --dx-glass-solid: rgba(255, 252, 244, .96);   /* menus and popovers stay readable */
+  --dx-glass-line: rgba(255, 255, 255, .72);
+  --dx-glass-edge: rgba(21, 28, 44, .10);
+  --dx-glass-shadow: 0 8px 30px rgba(60, 48, 20, .10), 0 1px 2px rgba(21, 28, 44, .05);
+  --dx-glass-hi: inset 0 1px 0 rgba(255, 255, 255, .85);
+  --dx-blur: blur(22px) saturate(1.7);
+
+  --dx-surface: var(--dx-glass);
+  --dx-sunken: rgba(214, 173, 69, .10);
+  --dx-line: var(--dx-glass-edge);
+  --dx-line-2: rgba(21, 28, 44, .16);
+  --dx-shadow: var(--dx-glass-shadow);
+  --dx-sb-bg: rgba(255, 252, 243, .50);
+  --dx-sb-line: var(--dx-glass-edge);
+
+  --dx-mesh:
+    radial-gradient(38% 34% at 12% 6%, rgba(214, 173, 69, .78), transparent 72%),
+    radial-gradient(36% 36% at 92% 8%, rgba(121, 102, 168, .62), transparent 72%),
+    radial-gradient(30% 30% at 34% 40%, rgba(214, 173, 69, .42), transparent 72%),
+    radial-gradient(30% 32% at 72% 52%, rgba(121, 102, 168, .40), transparent 72%),
+    radial-gradient(34% 30% at 50% 86%, rgba(83, 101, 125, .52), transparent 72%),
+    radial-gradient(40% 36% at 92% 96%, rgba(83, 101, 125, .55), transparent 72%);
+}
+html[data-theme="dark"] body:not(.locked) {
+  --dx-glass: rgba(24, 34, 54, .40);
+  --dx-glass-strong: rgba(20, 29, 46, .78);
+  --dx-glass-solid: rgba(16, 23, 37, .97);
+  --dx-glass-line: rgba(255, 255, 255, .10);
+  --dx-glass-edge: rgba(255, 255, 255, .09);
+  --dx-glass-shadow: 0 10px 34px rgba(0, 0, 0, .40);
+  --dx-glass-hi: inset 0 1px 0 rgba(255, 255, 255, .07);
+
+  --dx-surface: var(--dx-glass);
+  --dx-sunken: rgba(255, 255, 255, .045);
+  --dx-line: var(--dx-glass-edge);
+  --dx-line-2: rgba(255, 255, 255, .16);
+  --dx-shadow: var(--dx-glass-shadow);
+  --dx-sb-bg: rgba(12, 18, 30, .55);
+
+  --dx-mesh:
+    radial-gradient(38% 34% at 10% 4%, rgba(214, 173, 69, .46), transparent 72%),
+    radial-gradient(36% 36% at 92% 10%, rgba(121, 102, 168, .58), transparent 72%),
+    radial-gradient(30% 30% at 36% 42%, rgba(214, 173, 69, .22), transparent 72%),
+    radial-gradient(30% 32% at 70% 54%, rgba(121, 102, 168, .30), transparent 72%),
+    radial-gradient(34% 30% at 50% 88%, rgba(83, 101, 125, .55), transparent 72%),
+    radial-gradient(40% 36% at 90% 96%, rgba(83, 101, 125, .55), transparent 72%);
+}
+
+/* 2. The aurora behind everything ------------------------------------------- */
+/* extra specificity: style.css sets a flat background on the dark body */
+html:root body:not(.locked):not(.x) { background: var(--dx-mesh), var(--dx-bg); background-attachment: fixed; }
+body:not(.locked) main { background: transparent; }
+
+/* 3. Frosted surfaces --------------------------------------------------------- */
+body:not(.locked) aside {
+  background: var(--dx-sb-bg); background-image: none;
+  -webkit-backdrop-filter: var(--dx-blur); backdrop-filter: var(--dx-blur);
+  border-right: 1px solid var(--dx-glass-line);
+}
+body:not(.locked) .topbar {
+  background: var(--dx-glass); border-bottom: 1px solid var(--dx-glass-line);
+  -webkit-backdrop-filter: var(--dx-blur); backdrop-filter: var(--dx-blur);
+}
+/* Other scripts/styles in the app also paint these cards (solid fill, coloured top strip,
+   watermark icons). !important here makes the glass win over all of them. */
+body:not(.locked) :is(.stat, .course-card, .panel-card, .card, .tablewrap, .tile, .item, .en-banner) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 46%), var(--dx-glass) !important;
+  border: 1px solid var(--dx-glass-line) !important;
+  -webkit-backdrop-filter: var(--dx-blur) !important; backdrop-filter: var(--dx-blur) !important;
+  box-shadow: var(--dx-glass-shadow), var(--dx-glass-hi) !important;
+}
+html[data-theme="dark"] body:not(.locked) :is(.stat, .course-card, .panel-card, .card, .tablewrap, .tile, .item, .en-banner) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, 0) 46%), var(--dx-glass) !important;
+}
+body:not(.locked) :is(.chip, .search, .iconbtn, .profile-btn, .menu, .seg, .ax-xp, .ax-timer, .ax-tip) {
+  -webkit-backdrop-filter: var(--dx-blur); backdrop-filter: var(--dx-blur);
+  background: var(--dx-glass) !important; border: 1px solid var(--dx-glass-line) !important; box-shadow: var(--dx-glass-hi);
+  color: var(--dx-text) !important;
+}
+body:not(.locked) :is(.ax-xp b, .ax-tip .ic) { color: var(--dx-gold-ink) !important; }
+body:not(.locked) :is(.ax-xp small) { color: var(--dx-text-3) !important; }
+body:not(.locked) .ax-xp .bar { background: rgba(21, 28, 44, .12) !important; }
+body:not(.locked) .ax-timer button + button { background: rgba(21, 28, 44, .08) !important; color: var(--dx-text) !important; }
+body:not(.locked) .search { border-color: var(--dx-line-2) !important; }
+/* strip the old decorations from the big cards */
+body:not(.locked) :is(.stat, .course-card, .panel-card)::before, body:not(.locked) :is(.stat, .course-card, .panel-card)::after { display: none !important; }
+body:not(.locked) .stat > svg, body:not(.locked) .stat > .wm, body:not(.locked) .stat > .stat-bg { display: none !important; }
+body:not(.locked) :is(.stat, .course-card, .panel-card) { overflow: hidden; }
+
+/* hover: lift a little and let the gold through */
+body:not(.locked) :is(.stat[data-goto], .course-card, .panel-card.clickable, .tile):hover {
+  border-color: rgba(214, 173, 69, .65);
+  box-shadow: 0 14px 38px rgba(120, 90, 20, .16), var(--dx-glass-hi);
+}
+
+/* tables */
+body:not(.locked) .tablewrap th { background: rgba(214, 173, 69, .12); border-bottom-color: var(--dx-glass-edge); }
+html[data-theme="dark"] body:not(.locked) .tablewrap th { background: rgba(255, 255, 255, .045); }
+body:not(.locked) .tablewrap td { border-bottom-color: var(--dx-glass-edge); }
+body:not(.locked) .tablewrap tbody tr:hover td { background: rgba(214, 173, 69, .10); }
+
+/* nav active pill becomes a glass chip */
+body:not(.locked) nav button.on, body:not(.locked) nav button.on:hover {
+  background: linear-gradient(135deg, rgba(214, 173, 69, .30), rgba(214, 173, 69, .12));
+  box-shadow: inset 0 0 0 1px rgba(214, 173, 69, .35), var(--dx-glass-hi);
+}
+
+/* popovers must stay legible: near-opaque glass */
+body:not(.locked) :is(.drop, .pmenu, .q-panel, .ai-panel) {
+  background: var(--dx-glass-solid);
+  -webkit-backdrop-filter: var(--dx-blur); backdrop-filter: var(--dx-blur);
+  border: 1px solid var(--dx-glass-line); box-shadow: var(--dx-pop);
+}
+body:not(.locked) .seg button[aria-checked="true"] { background: var(--dx-glass-solid); }
+
+/* buttons: gold glass */
+body:not(.locked) .btn:not(.ghost):not(.secondary):not(.outline) {
+  background: linear-gradient(180deg, #E8CB78, #D6AD45); border-color: rgba(214, 173, 69, .9);
+  box-shadow: 0 6px 16px rgba(214, 173, 69, .30), inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+body:not(.locked) .btn:not(.ghost):not(.secondary):not(.outline):hover { background: linear-gradient(180deg, #EBD184, #CFA53B); }
+
+/* 3b. LIGHT MODE COLOUR ------------------------------------------------------
+   Light mode only. Richer aurora, tinted glass, coloured icon tiles, gradient headings. */
+html:not([data-theme="dark"]) body:not(.locked) {
+  --dx-mesh:
+    radial-gradient(38% 34% at 30% 0%, rgba(232, 176, 40, .66), transparent 70%),
+    radial-gradient(38% 38% at 94% 6%, rgba(139, 109, 214, .78), transparent 70%),
+    radial-gradient(30% 32% at 30% 38%, rgba(240, 190, 70, .55), transparent 70%),
+    radial-gradient(32% 34% at 74% 48%, rgba(150, 120, 220, .50), transparent 70%),
+    radial-gradient(34% 32% at 46% 84%, rgba(86, 130, 190, .62), transparent 70%),
+    radial-gradient(42% 38% at 94% 98%, rgba(86, 120, 175, .66), transparent 70%),
+    radial-gradient(34% 30% at 6% 96%, rgba(232, 176, 40, .38), transparent 70%);
+  --dx-glass: rgba(255, 253, 246, .46);
+  --dx-sb-bg: linear-gradient(180deg, rgba(255, 252, 243, .62), rgba(255, 252, 243, .46) 45%, rgba(232, 176, 40, .22));
+}
+/* tinted glass per stat card */
+html:not([data-theme="dark"]) body:not(.locked) .stat:nth-child(4n+1) { --tint: 232, 176, 40; --tint2: 199, 150, 40; }
+html:not([data-theme="dark"]) body:not(.locked) .stat:nth-child(4n+2) { --tint: 139, 109, 214; --tint2: 106, 80, 176; }
+html:not([data-theme="dark"]) body:not(.locked) .stat:nth-child(4n+3) { --tint: 86, 130, 190; --tint2: 59, 90, 140; }
+html:not([data-theme="dark"]) body:not(.locked) .stat:nth-child(4n+4) { --tint: 190, 70, 90; --tint2: 150, 40, 62; }
+html:not([data-theme="dark"]) body:not(.locked) .stat {
+  background: linear-gradient(135deg, rgba(var(--tint), .30), rgba(var(--tint), 0) 62%), linear-gradient(135deg, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 46%), var(--dx-glass) !important;
+}
+html:not([data-theme="dark"]) body:not(.locked) .stat .stat-ic {
+  background: linear-gradient(135deg, rgb(var(--tint)), rgb(var(--tint2))) !important; color: #fff !important;
+  box-shadow: 0 6px 14px rgba(var(--tint2), .38), inset 0 1px 0 rgba(255, 255, 255, .45) !important; border: 0 !important;
+}
+html:not([data-theme="dark"]) body:not(.locked) .stat .meter i { background: linear-gradient(90deg, rgb(var(--tint)), rgb(var(--tint2))); }
+/* course cards: soft colour wash that cycles gold / violet / steel */
+html:not([data-theme="dark"]) body:not(.locked) .course-card:nth-child(3n+1) { --tint: 232, 176, 40; }
+html:not([data-theme="dark"]) body:not(.locked) .course-card:nth-child(3n+2) { --tint: 139, 109, 214; }
+html:not([data-theme="dark"]) body:not(.locked) .course-card:nth-child(3n+3) { --tint: 86, 130, 190; }
+html:not([data-theme="dark"]) body:not(.locked) .course-card {
+  background: linear-gradient(160deg, rgba(var(--tint), .24), rgba(var(--tint), 0) 58%), linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 46%), var(--dx-glass) !important;
+}
+html:not([data-theme="dark"]) body:not(.locked) .course-card .cc-code { background: rgba(var(--tint), .22); color: #3B2F66; }
+html:not([data-theme="dark"]) body:not(.locked) .course-card .meter i { background: linear-gradient(90deg, rgba(var(--tint), .75), rgb(var(--tint))); }
+/* side panels and tiles pick up a gentle gold wash */
+html:not([data-theme="dark"]) body:not(.locked) :is(.panel-card, .tile, .card) {
+  background: linear-gradient(160deg, rgba(232, 176, 40, .14), rgba(232, 176, 40, 0) 55%), linear-gradient(135deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 46%), var(--dx-glass) !important;
+}
+/* headings with colour */
+html:not([data-theme="dark"]) body:not(.locked) :is(.dx-pagehead h1, .hero h2) {
+  background: linear-gradient(95deg, #151C2C 10%, #4A3B8C 58%, #A9780E 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+html:not([data-theme="dark"]) body:not(.locked) :is(.dx-eyebrow, .hero-date) { color: #8A5E00; }
+html:not([data-theme="dark"]) body:not(.locked) .sec-head h2::before { display: block; content: ""; width: 4px; height: 1em; margin-right: 8px; border-radius: 3px; background: linear-gradient(#8B6DD6, #E8B028); }
+html:not([data-theme="dark"]) body:not(.locked) .sec-head h2 { display: flex; align-items: center; }
+/* sidebar: colourful active pill and tinted icons */
+html:not([data-theme="dark"]) body:not(.locked) nav button.on, html:not([data-theme="dark"]) body:not(.locked) nav button.on:hover {
+  background: linear-gradient(135deg, rgba(232, 176, 40, .55), rgba(139, 109, 214, .28)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .6), 0 4px 12px rgba(150, 110, 30, .18);
+}
+html:not([data-theme="dark"]) body:not(.locked) nav button .ic { color: #6A5AA8; }
+html:not([data-theme="dark"]) body:not(.locked) nav button.on .ic { color: #7A4F00; }
+html:not([data-theme="dark"]) body:not(.locked) .brand b .wm { color: #A9780E; }
+/* tables and chips */
+html:not([data-theme="dark"]) body:not(.locked) .tablewrap th { background: rgba(232, 176, 40, .22); color: #5C4A12; }
+html:not([data-theme="dark"]) body:not(.locked) .chip { background: rgba(255, 255, 255, .55) !important; border-color: rgba(139, 109, 214, .45) !important; color: #3B2F66 !important; }
+html:not([data-theme="dark"]) body:not(.locked) .topbar { background: linear-gradient(90deg, rgba(255, 253, 246, .62), rgba(240, 232, 255, .52)); }
+
+/* 4. Small screens and fallbacks ---------------------------------------------- */
+@media (max-width: 1024px) {
+  body:not(.locked) aside { background: var(--dx-glass-solid); }          /* the drawer sits over content: keep it readable */
+}
+@media (max-width: 640px) {
+  html:root body:not(.locked):not(.x) { background-attachment: scroll; }
+  body:not(.locked) :is(.stat, .course-card, .panel-card, .card, .tablewrap, .tile, .item) { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body:not(.locked) { --dx-surface: var(--dx-glass-strong); --dx-sb-bg: var(--dx-glass-solid); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  body:not(.locked) { --dx-surface: var(--dx-glass-solid); --dx-sb-bg: var(--dx-glass-solid); }
+  body:not(.locked) :is(.stat, .course-card, .panel-card, .card, .tablewrap, .tile, .item, .topbar, aside) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
