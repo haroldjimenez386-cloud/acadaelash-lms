@@ -48,7 +48,7 @@ if (!fs.existsSync(path.join(ROOT, 'index.html'))) {
   console.error('Cannot find index.html in ' + ROOT + '\nKeep the website files in the folder above backend (univlms/index.html and univlms/backend/server.js), or set FRONTEND_DIR in .env.');
   process.exit(1);
 }
-const PORT = Number(process.env.PORT || process.env.CENTRAL_PORT) || 3000;
+const PORT = Number(process.env.PORT || process.env.CENTRAL_PORT) || 8000;
 const HOST = process.env.HOST || process.env.CENTRAL_HOST || '127.0.0.1';
 
 const TYPES = {
