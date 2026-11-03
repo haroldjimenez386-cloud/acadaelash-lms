@@ -580,7 +580,7 @@
               <button type="button" class="eye" data-target="lpass" aria-label="Show password" aria-pressed="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/><line class="slash" x1="3" y1="3" x2="21" y2="21"/></svg></button>
             </div>
           </div>
-          <div class="lp-row"><button type="button" class="lp-forgot" id="lforgot" aria-expanded="false" aria-controls="lforgotnote">Forgot password?</button></div>
+          <div class="lp-row"><label style="display:flex;align-items:center;gap:.4rem;margin-right:auto;cursor:pointer"><input type="checkbox" id="lkeep"> Keep me signed in</label><button type="button" class="lp-forgot" id="lforgot" aria-expanded="false" aria-controls="lforgotnote">Forgot password?</button></div>
           <div class="fieldmsg is-warn" id="lforgotnote" role="status" hidden>Password reset is not set up in this portal yet. Ask your university administrator to reset your password.</div>
           <div class="formok" id="lmsg" role="status"></div>
           <div class="formerr" id="lerr" role="alert"></div>
@@ -675,6 +675,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="config.js"></script>
+  <script src="user.js"></script>
   <script>
 const $ = id => document.getElementById(id);
 
@@ -1237,6 +1238,8 @@ $('signupForm').addEventListener('submit', async e => {
     $('roleNote').hidden = true;
     showLogin();
     $('lmsg').textContent = 'Account created. You can log in now.';
+    const auto = window.User && await User.signIn(sb, email, await hashPassword(email, p1));   // sign the new user in and save them
+    if (auto) { enter(auto); if (!document.body.classList.contains('locked')) $('lmsg').textContent = ''; }
   } catch (ex) {
     console.error(ex);
     err.textContent = 'Something went wrong: ' + ex.message;
@@ -1251,13 +1254,14 @@ $('loginForm').addEventListener('submit', async e => {
   $('lerr').textContent = '';
   $('lmsg').textContent = '';
   const email = $('lemail').value.trim().toLowerCase();
+  const keep = !!($('lkeep') && $('lkeep').checked);   // read before clearLoginFields() resets the form
   try {
     const hash = await hashPassword(email, $('lpass').value);
     clearLoginFields(); // credentials now live only in local variables for this request
     const {data, error} = await sb.rpc('login_account', {p_email: email, p_hash: hash});
     if (error) { $('lerr').textContent = error.message; return; }
     if (!data) { $('lerr').textContent = 'Wrong email or password.'; return; }
-    sessionStorage.setItem('cred', JSON.stringify({email, hash}));
+    window.User ? User.save(data, {email, hash}, keep) : sessionStorage.setItem('cred', JSON.stringify({email, hash}));
     enter(data);
   } catch (ex) {
     console.error(ex);
@@ -1273,6 +1277,7 @@ clearLoginFields();
 window.addEventListener('pageshow', clearLoginFields);
 
 $('logout').onclick = () => {
+  if (window.User) User.clear();
   sessionStorage.removeItem('acct');
   sessionStorage.removeItem('cred');
   me = null;
