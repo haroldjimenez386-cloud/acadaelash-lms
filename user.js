@@ -35,7 +35,7 @@
     signIn: async function (sb, email, hash) {
       try {
         var r = await sb.rpc('login_account', {p_email: email, p_hash: hash});
-        if (r.error || !r.data) return null;
+        if (r.error || !r.data || !r.data.role) return null;   // no role = wrong password or locked
         User.save(r.data, {email: email, hash: hash}, false);
         return r.data;
       } catch (e) { return null; }

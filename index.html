@@ -1249,8 +1249,33 @@ $('signupForm').addEventListener('submit', async e => {
   }
 });
 
+/* Login lock: after 5 wrong passwords the server refuses logins for 5 minutes. The server is what
+   enforces it; this only disables the button and shows the countdown. Refreshing the page does not
+   help, because the next attempt is refused by the server again. */
+let loginLockTimer = null;
+function startLoginLock(seconds) {
+  const btn = $('loginForm').querySelector('button[type="submit"]');
+  const end = Date.now() + seconds * 1000;
+  clearInterval(loginLockTimer);
+  const tick = () => {
+    const left = Math.ceil((end - Date.now()) / 1000);
+    if (left <= 0) {
+      clearInterval(loginLockTimer); loginLockTimer = null;
+      btn.disabled = false; btn.textContent = 'Log in';
+      $('lerr').textContent = '';
+      $('lmsg').textContent = 'The lock is over. You have 5 attempts again.';
+      return;
+    }
+    btn.textContent = 'Locked ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  };
+  btn.disabled = true;
+  tick();
+  loginLockTimer = setInterval(tick, 1000);
+}
+
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if (loginLockTimer) return;   // locked: the button is disabled, this also covers the Enter key
   $('lerr').textContent = '';
   $('lmsg').textContent = '';
   const email = $('lemail').value.trim().toLowerCase();
@@ -1260,7 +1285,19 @@ $('loginForm').addEventListener('submit', async e => {
     clearLoginFields(); // credentials now live only in local variables for this request
     const {data, error} = await sb.rpc('login_account', {p_email: email, p_hash: hash});
     if (error) { $('lerr').textContent = error.message; return; }
-    if (!data) { $('lerr').textContent = 'Wrong email or password.'; return; }
+    if (!data || !data.role) {   // no user came back: wrong password, or the account is locked
+      if (data && data.locked) {
+        $('lerr').textContent = 'Too many wrong attempts. Login is locked for 5 minutes, even with the correct password.';
+        startLoginLock(data.retry_seconds || 300);
+      } else if (data && data.remaining === 1) {
+        $('lerr').textContent = 'Wrong email or password. 1 attempt remaining. One more wrong password locks login for 5 minutes.';
+      } else if (data && typeof data.remaining === 'number') {
+        $('lerr').textContent = 'Wrong email or password. ' + data.remaining + ' attempts remaining.';
+      } else {
+        $('lerr').textContent = 'Wrong email or password.';
+      }
+      return;
+    }
     window.User ? User.save(data, {email, hash}, keep) : sessionStorage.setItem('cred', JSON.stringify({email, hash}));
     enter(data);
   } catch (ex) {
