@@ -595,13 +595,6 @@
           </div>
           <h2>Create your account</h2>
           <p class="lead">Register using your university details.</p>
-          <div class="field">
-            <label for="sroletype">Account role</label>
-            <select id="sroletype">
-              <option value="student">Student</option>
-            </select>
-            <p class="hint" id="roleNote" hidden>Only students register here. Administrator accounts are created by an administrator.</p>
-          </div>
           <div class="two">
             <div class="field">
               <label for="sfirst">First name</label>
@@ -1123,8 +1116,7 @@ function passwordsMismatch() {
 }
 
 function updateSubmit() {
-  const student = $('sroletype').value === 'student';
-  $('ssubmit').disabled = passwordsMismatch() || (student && sidStatus !== 'ok');
+  $('ssubmit').disabled = passwordsMismatch() || sidStatus !== 'ok';
 }
 
 function checkPasswords() {
@@ -1191,22 +1183,11 @@ $('semail').addEventListener('keydown', e => { if (e.key === ' ') e.preventDefau
   $(id).addEventListener('keydown', e => { if (e.key === ' ') e.preventDefault(); });
 });
 
-$('sroletype').onchange = () => {
-  const student = $('sroletype').value === 'student';
-  $('sidgroup').hidden = !student;
-  $('roleNote').hidden = student;
-  updateSubmit();
-};
-
 $('signupForm').addEventListener('submit', async e => {
   e.preventDefault();
   const err = $('serr');
   err.textContent = '';
-  const r = $('sroletype').value;
-  if (!allowedRoles.includes(r)) {
-    err.textContent = 'Not authorized. Only students can create an account here.';
-    return;
-  }
+  const r = 'student';   // public sign-up is student-only
   const first = $('sfirst').value.trim(), last = $('slast').value.trim();
   const email = $('semail').value.trim().toLowerCase();
   const sid = $('ssid').value.trim();
@@ -1247,7 +1228,6 @@ $('signupForm').addEventListener('submit', async e => {
     setSid('', '');
     $('pmsg').textContent = '';
     $('sidgroup').hidden = false;
-    $('roleNote').hidden = true;
     showLogin();
     $('lmsg').textContent = 'Account created. You can log in now.';
     const auto = window.User && await User.signIn(sb, email, await hashPassword(email, p1));   // sign the new user in and save them
