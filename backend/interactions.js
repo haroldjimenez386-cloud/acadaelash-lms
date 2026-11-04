@@ -1103,6 +1103,28 @@
     };
   }
 
+  /* Attached file of a submission: fetch it (admin only) and open it in a tab or save it. */
+  const FILE_TYPES = {pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', txt: 'text/plain',
+    doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', zip: 'application/zip'};
+  const CAN_PREVIEW = ['pdf', 'png', 'jpg', 'jpeg', 'txt'];   // the browser can show these; the rest are downloaded
+  async function openSubmissionFile(r, download) {
+    const ext = String(r.file_name || '').split('.').pop().toLowerCase();
+    const preview = !download && CAN_PREVIEW.includes(ext);
+    const tab = preview ? window.open('', '_blank') : null;   // opened first so the browser does not block it
+    try {
+      const f = await rpc('admin_get_submission_file', {p_id: Number(r.submission_id)});
+      const bin = atob(f.data), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      // The type comes from the extension (not from the upload), so a file can never run as a web page.
+      const url = URL.createObjectURL(new Blob([bytes], {type: FILE_TYPES[ext] || 'application/octet-stream'}));
+      if (tab) tab.location.href = url;
+      else { const a = document.createElement('a'); a.href = url; a.download = f.file_name; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    } catch (ex) { if (tab) tab.close(); say(ex.message); }
+  }
+
   /* Submissions: view student work, score it and write feedback */
   async function submissions() {
     V(`<div class="ad-card"><div class="ad-row"><input id="ad-bq" class="ad-in" placeholder="Filter by student, assignment or subject"><span class="ad-mute">Open a submission to read it, score it (0 to 100) and leave feedback.</span></div>
@@ -1113,18 +1135,19 @@
       const t = $('ad-bq').value.toLowerCase();
       $('ad-bb').innerHTML = rows.filter(r => !t || [r.student, r.assignment, r.subject].join(' ').toLowerCase().includes(t)).map(r =>
         `<tr><td>${esc(r.student)}</td><td>${esc(r.assignment)}</td><td>${esc(r.subject)}</td><td>${esc(new Date(r.submitted_at).toLocaleString('en-PH'))}${r.late ? ' <b class="bad-t">Late</b>' : ''}</td>
-        <td>${r.score == null ? '<span class="ad-mute">Not reviewed</span>' : esc(r.score)}</td><td class="ad-act">${btn('rv', r.submission_id, r.score == null && !r.feedback ? 'Review' : 'Edit review')}</td></tr>`).join('') || '<tr><td colspan="6">No submissions yet.</td></tr>';
+        <td>${r.score == null ? '<span class="ad-mute">Not reviewed</span>' : esc(r.score)}</td><td class="ad-act">${r.has_file ? btn('vf', r.submission_id, 'View file') + btn('df', r.submission_id, 'Download') : ''}${btn('rv', r.submission_id, r.score == null && !r.feedback ? 'Review' : 'Edit review')}</td></tr>`).join('') || '<tr><td colspan="6">No submissions yet.</td></tr>';
     };
     $('ad-bq').oninput = draw; draw();
     $('ad-bb').onclick = e => {
       const b = e.target.closest('button[data-a]');
       if (!b) return;
       const r = rows.find(x => String(x.submission_id) === b.dataset.id);
+      if (b.dataset.a === 'vf' || b.dataset.a === 'df') { openSubmissionFile(r, b.dataset.a === 'df'); return; }
       dlg(`${r.student}: ${r.assignment}`, [{n: 'score', l: 'Score (0 to 100, optional)', t: 'number', step: '0.01', min: 0, max: 100}, {n: 'fb', l: 'Feedback', t: 'textarea'}],
         {score: r.score == null ? '' : r.score, fb: r.feedback || ''}, async v => {
           await rpc('admin_review_submission', {p_id: Number(r.submission_id), p_score: v.score === '' ? null : Number(v.score), p_feedback: v.fb});
           submissions();
-        }, 'Save review', `<div class="ad-sub">${esc(r.content)}</div>`);
+        }, 'Save review', `<div class="ad-sub">${esc(r.content)}</div>${r.has_file ? `<p class="ad-mute">Attached file: ${esc(r.file_name)}. Use View file or Download in the table.</p>` : ''}`);
     };
   }
 
@@ -2480,6 +2503,28 @@
     };
   }
 
+  /* Attached file of a submission: fetch it (admin only) and open it in a tab or save it. */
+  const FILE_TYPES = {pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', txt: 'text/plain',
+    doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ppt: 'application/vnd.ms-powerpoint', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    xls: 'application/vnd.ms-excel', xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', zip: 'application/zip'};
+  const CAN_PREVIEW = ['pdf', 'png', 'jpg', 'jpeg', 'txt'];   // the browser can show these; the rest are downloaded
+  async function openSubmissionFile(r, download) {
+    const ext = String(r.file_name || '').split('.').pop().toLowerCase();
+    const preview = !download && CAN_PREVIEW.includes(ext);
+    const tab = preview ? window.open('', '_blank') : null;   // opened first so the browser does not block it
+    try {
+      const f = await rpc('admin_get_submission_file', {p_id: Number(r.submission_id)});
+      const bin = atob(f.data), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      // The type comes from the extension (not from the upload), so a file can never run as a web page.
+      const url = URL.createObjectURL(new Blob([bytes], {type: FILE_TYPES[ext] || 'application/octet-stream'}));
+      if (tab) tab.location.href = url;
+      else { const a = document.createElement('a'); a.href = url; a.download = f.file_name; document.body.appendChild(a); a.click(); a.remove(); }
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    } catch (ex) { if (tab) tab.close(); say(ex.message); }
+  }
+
   /* Submissions: view student work, score it and write feedback */
   async function submissions() {
     V(`<div class="ad-card"><div class="ad-row"><input id="ad-bq" class="ad-in" placeholder="Filter by student, assignment or subject"><span class="ad-mute">Open a submission to read it, score it (0 to 100) and leave feedback.</span></div>
@@ -2490,18 +2535,19 @@
       const t = $('ad-bq').value.toLowerCase();
       $('ad-bb').innerHTML = rows.filter(r => !t || [r.student, r.assignment, r.subject].join(' ').toLowerCase().includes(t)).map(r =>
         `<tr><td>${esc(r.student)}</td><td>${esc(r.assignment)}</td><td>${esc(r.subject)}</td><td>${esc(new Date(r.submitted_at).toLocaleString('en-PH'))}${r.late ? ' <b class="bad-t">Late</b>' : ''}</td>
-        <td>${r.score == null ? '<span class="ad-mute">Not reviewed</span>' : esc(r.score)}</td><td class="ad-act">${btn('rv', r.submission_id, r.score == null && !r.feedback ? 'Review' : 'Edit review')}</td></tr>`).join('') || '<tr><td colspan="6">No submissions yet.</td></tr>';
+        <td>${r.score == null ? '<span class="ad-mute">Not reviewed</span>' : esc(r.score)}</td><td class="ad-act">${r.has_file ? btn('vf', r.submission_id, 'View file') + btn('df', r.submission_id, 'Download') : ''}${btn('rv', r.submission_id, r.score == null && !r.feedback ? 'Review' : 'Edit review')}</td></tr>`).join('') || '<tr><td colspan="6">No submissions yet.</td></tr>';
     };
     $('ad-bq').oninput = draw; draw();
     $('ad-bb').onclick = e => {
       const b = e.target.closest('button[data-a]');
       if (!b) return;
       const r = rows.find(x => String(x.submission_id) === b.dataset.id);
+      if (b.dataset.a === 'vf' || b.dataset.a === 'df') { openSubmissionFile(r, b.dataset.a === 'df'); return; }
       dlg(`${r.student}: ${r.assignment}`, [{n: 'score', l: 'Score (0 to 100, optional)', t: 'number', step: '0.01', min: 0, max: 100}, {n: 'fb', l: 'Feedback', t: 'textarea'}],
         {score: r.score == null ? '' : r.score, fb: r.feedback || ''}, async v => {
           await rpc('admin_review_submission', {p_id: Number(r.submission_id), p_score: v.score === '' ? null : Number(v.score), p_feedback: v.fb});
           submissions();
-        }, 'Save review', `<div class="ad-sub">${esc(r.content)}</div>`);
+        }, 'Save review', `<div class="ad-sub">${esc(r.content)}</div>${r.has_file ? `<p class="ad-mute">Attached file: ${esc(r.file_name)}. Use View file or Download in the table.</p>` : ''}`);
     };
   }
 

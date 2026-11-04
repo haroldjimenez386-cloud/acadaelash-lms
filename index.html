@@ -840,13 +840,25 @@ function myWork() {
 const pendingList = () => myWork().filter(w => !w.sub).map(w => ({title: w.a.title, course: code(w.c.subject_id), due: w.a.due_date}));
 
 // Assignment submissions are saved by the database (see phase4_submissions_announcements.sql).
+const fileToBase64 = f => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result).split(',')[1] || '');
+  r.onerror = () => rej(r.error);
+  r.readAsDataURL(f);
+});
 async function saveSubmission(a, text) {
   let cred = null;
   try { cred = JSON.parse(sessionStorage.getItem('cred')); } catch (e) { /* ignore */ }
   if (!cred) { alert('Please log out and log in again to continue.'); return false; }
-  const {data, error} = await sb.rpc('submit_assignment', {p_email: cred.email, p_hash: cred.hash, p_assignment: a.assignment_id, p_content: text});
+  const args = {p_email: cred.email, p_hash: cred.hash, p_assignment: a.assignment_id, p_content: text};
+  const f = window.subFile; window.subFile = null;
+  if (f) {
+    try { args.p_file_name = f.name; args.p_file_data = await fileToBase64(f); }
+    catch (e) { alert('The file could not be read. Please attach it again.'); return false; }
+  }
+  const {data, error} = await sb.rpc('submit_assignment', args);
   if (error) {
-    alert(error.code === 'P0001' ? error.message : error.code === 'PGRST202' ? 'Submissions are not set up yet. Run phase4_submissions_announcements.sql in Supabase.' : 'Could not submit. Please try again.');
+    alert(error.code === 'P0001' ? error.message : error.code === 'PGRST202' ? 'Submissions are not set up yet. Run phase4_submissions_announcements.sql and submission_files.sql in Supabase.' : 'Could not submit. Please try again.');
     return false;
   }
   db.submissions = db.submissions.filter(x => !(x.assignment_id === a.assignment_id && x.student_id === me));
@@ -1283,7 +1295,7 @@ $('loginForm').addEventListener('submit', async e => {
   try {
     const hash = await hashPassword(email, $('lpass').value);
     clearLoginFields(); // credentials now live only in local variables for this request
-    const {data, error} = await sb.rpc('login_account', {p_email: email, p_hash: hash});
+    const {data, error} = await sb.rpc('login_with_lockout', {p_email: email, p_hash: hash});
     if (error) { $('lerr').textContent = error.message; return; }
     if (!data || !data.role) {   // no user came back: wrong password, or the account is locked
       if (data && data.locked) {
@@ -1839,9 +1851,8 @@ $('logout').onclick = () => {
    content, or null when cancelled. */
 (() => {
   'use strict';
-  // This project has no server-side upload rules or storage, so these limits are placeholders:
-  // set them to match your backend's accepted types and size limit.
-  const MAX = 10 * 1024 * 1024;
+  // Same limits as submit_assignment in backend/sql/submission_files.sql (5 MB, these file types).
+  const MAX = 5 * 1024 * 1024;
   const EXT = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'zip', 'jpg', 'jpeg', 'png'];
   const size = n => n < 1024 ? n + ' B' : n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
   const ic = n => `<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
@@ -1864,7 +1875,7 @@ $('logout').onclick = () => {
         <span class="dz-or">or</span>
         <button type="button" class="dz-btn" id="dz-pick">Choose File</button>
         <input type="file" id="dz-input" accept=".${EXT.join(',.')}" hidden>
-        <small>PDF, Word, PowerPoint, Excel, TXT, ZIP, JPG or PNG. Maximum 10 MB.</small>
+        <small>PDF, Word, PowerPoint, Excel, TXT, ZIP, JPG or PNG. Maximum 5 MB.</small>
       </div>
       <div class="dz-err" id="dz-err" role="alert"></div>
       <p class="sr" id="dz-status" role="status" aria-live="polite"></p>
@@ -1896,7 +1907,7 @@ $('logout').onclick = () => {
     if (!f) return;
     const ext = f.name.split('.').pop().toLowerCase();
     if (!EXT.includes(ext)) { err.textContent = 'That file type is not supported. Choose a PDF, Word, PowerPoint, Excel, TXT, ZIP, JPG or PNG file.'; return; }
-    if (f.size > MAX) { err.textContent = `That file is ${size(f.size)}. The limit is 10 MB.`; return; }
+    if (f.size > MAX) { err.textContent = `That file is ${size(f.size)}. The limit is 5 MB.`; return; }
     file = f; sync(); q('#dz-status').textContent = `${f.name} attached, ${size(f.size)}.`;
   }
   const finish = v => { const r = resolve; resolve = null; dlg.close(); if (r) r(v); };
@@ -1913,6 +1924,7 @@ $('logout').onclick = () => {
   go.addEventListener('click', () => {
     if (go.disabled) return; // blocks double submits
     go.disabled = true; go.classList.add('is-busy');
+    window.subFile = file;   // saveSubmission() uploads this file together with the text
     const parts = [];
     if (file) parts.push(`Attached file: ${file.name} (${size(file.size)})`);
     if (text.value.trim()) parts.push(text.value.trim());
