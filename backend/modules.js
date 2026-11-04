@@ -127,7 +127,8 @@
     else if (/\.(mp4|webm)(\?|#|$)/i.test(u)) embed = `<video class="res-embed" controls preload="none" src="${esc(u)}"></video>`;
     else if (/\.pdf(\?|#|$)/i.test(u)) embed = `<details><summary>Preview PDF</summary><iframe class="res-embed tall" src="${esc(u)}" title="${esc(r.title)}" loading="lazy"></iframe></details>`;
     const dl = isLocal(u) && EXT.includes(extOf(u)) ? ` <a class="dl" href="${esc(norm(u))}" download="${esc(safe(baseOf(u)))}">${dlIc}Download ${esc(baseOf(u))}</a>` : '';
-    return `<li><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(r.title)}</a> <small>${esc(r.source || '')}</small>${dl}${embed}</li>`;
+    const ext = isLocal(u) ? '' : ' <small class="res-note">External site. If it is unavailable, the lesson above and Download Lesson still work offline.</small>';
+    return `<li><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(r.title)}</a> <small>${esc(r.source || '')}</small>${dl}${ext}${embed}</li>`;
   }
   async function lessonView(id) {
     const l = L.lessons.find(x => x.lesson_id === id), m = l && mods().find(x => x.sid === l.subject_id && x.no === l.module_no);
@@ -286,7 +287,7 @@ ${obj.length ? `<h2>Learning objectives</h2><ul>${obj.map(o => `<li>${htmlEsc(o)
     setTimeout(() => URL.revokeObjectURL(u), 30000);
   }
   let dlBusy = false;
-  const say = (t, bad) => { const el = $('dl-status'); if (el) { el.textContent = t; el.classList.toggle('bad', !!bad); } };
+  const say = (t, bad) => document.querySelectorAll('.dl-status').forEach(el => { el.textContent = t; el.classList.toggle('bad', !!bad); });
   async function runDl(btn, job) {
     if (dlBusy) return;
     dlBusy = true; btn.disabled = true; btn.classList.add('is-busy'); say('Preparing your download...');
@@ -319,8 +320,29 @@ ${obj.length ? `<h2>Learning objectives</h2><ul>${obj.map(o => `<li>${htmlEsc(o)
     original();
     const want = pending || '#modules'; pending = null;
     root().innerHTML = '<div class="card">Loading modules...</div>';
-    try { L = await call('get_learning'); pending = ''; if (want.startsWith('#modules/') && location.hash !== want) history.replaceState(null, '', want); route(want); window.scrollTo(0, 0); }
+    try { L = await call('get_learning'); pending = ''; if (want.startsWith('#modules/') && location.hash !== want) history.replaceState(null, '', want); route(want); legacyList(); window.scrollTo(0, 0); }
     catch (e) { root().innerHTML = `<div class="card"><p class="formerr">${esc(e.message)}</p><button class="btn" data-mod="retry">Try again</button></div>`; }
+  };
+
+  // "Downloadable materials": the old links pointed at PDF files that are not on the server, so build the download from the lessons instead
+  function legacyList() {
+    const box = $('module-list'); if (!box || !L) return;
+    const ids = new Set(active().map(x => x.c.subject_id));
+    const list = db.modules.filter(x => ids.has(x.subject_id)).sort((a, b) => a.subject_id - b.subject_id || a.module_no - b.module_no);
+    box.innerHTML = list.map(x => {
+      const k = x.subject_id + '-' + x.module_no;
+      return `<div class="card item"><div><b>Module ${esc(x.module_no)}: ${esc(x.title)}</b><p>${esc(code(x.subject_id))} &bull; ${esc(x.description || '')}</p></div>${dlBtn('dlmat', `data-k="${esc(k)}"`, 'Download', 'ghost')}</div>`;
+    }).join('') + (list.length ? '<p class="dl-status" role="status"></p>' : '');
+    box.hidden = !list.length;
+    const em = $('module-empty'); if (em) em.hidden = list.length > 0;
+  }
+  const matZip = k => async say => {
+    const [sid, no] = k.split('-').map(Number);
+    const m = mods().find(x => x.sid === sid && x.no === no) || (() => {
+      const dm = db.modules.find(x => x.subject_id === sid && x.module_no === no);
+      return {k, sid, no, title: dm.title, desc: dm.description || '', ls: []};
+    })();
+    return {...(await buildZip([m], `${safe(code(sid))}_Module_${pad(no)}`, say)), name: `${safe(code(sid))}_Module_${pad(no)}.zip`};
   };
 
   // Back/Forward, typed URLs and every anchor in the learning area arrive here
@@ -333,8 +355,9 @@ ${obj.length ? `<h2>Learning objectives</h2><ul>${obj.map(o => `<li>${htmlEsc(o)
   });
 
   document.addEventListener('click', e => {
-    const b = e.target.closest('#mod-root [data-mod]');
+    const b = e.target.closest('#mod-root [data-mod], #module-list [data-mod]');
     if (!b || b.disabled) return;
+    if (b.dataset.mod === 'dlmat') return void runDl(b, matZip(b.dataset.k));
     const a = b.dataset.mod, mod = b.dataset.k && mods().find(x => x.k === b.dataset.k);
     if (a === 'complete') complete(+b.dataset.id, b); else if (a === 'retry') renderers.modules();
     else if (a === 'dlmod' && mod) runDl(b, modZip(mod));
