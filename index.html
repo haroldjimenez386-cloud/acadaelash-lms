@@ -1643,7 +1643,8 @@ $('logout').onclick = () => {
     s.addEventListener('animationend', () => s.remove());
   });
   document.addEventListener('pointermove', e => {
-    const c = e.target.closest('.stat, .course-card, .item, .panel-card');
+    const el = e.target instanceof Element ? e.target : e.target.parentElement;
+    const c = el?.closest('.stat, .course-card, .item, .panel-card');
     if (!c) return;
     const r = c.getBoundingClientRect();
     c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
